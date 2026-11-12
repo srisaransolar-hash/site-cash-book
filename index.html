@@ -1,0 +1,491 @@
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name="theme-color" content="#B86A00"><link rel="manifest" href="manifest.webmanifest"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Site Cash Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --ground:#F3F5F4; --surface:#FFFFFF; --sunk:#E8ECEA; --line:#D5DCD9;
+  --ink:#16201D; --ink-2:#4A5753; --ink-3:#77837F;
+  --accent:#B86A00; --accent-ink:#FFFFFF; --accent-soft:#FBEBD2;
+  --in:#1D7A4C; --in-soft:#DDF1E5; --out:#B2412D; --out-soft:#F8E1DC;
+  --warn:#9A6A00; --warn-soft:#F7EDC9;
+  --shadow:0 1px 2px rgba(20,32,28,.06),0 4px 16px rgba(20,32,28,.06);
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#111715; --surface:#19211E; --sunk:#222C28; --line:#2E3A36;
+  --ink:#E9EFEC; --ink-2:#AEBBB6; --ink-3:#7F8C87;
+  --accent:#F0A032; --accent-ink:#1A1204; --accent-soft:#3A2A10;
+  --in:#5BCB8F; --in-soft:#173726; --out:#F0806B; --out-soft:#3D1F19;
+  --warn:#E7C160; --warn-soft:#3A3014;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#111715; --surface:#19211E; --sunk:#222C28; --line:#2E3A36;
+  --ink:#E9EFEC; --ink-2:#AEBBB6; --ink-3:#7F8C87;
+  --accent:#F0A032; --accent-ink:#1A1204; --accent-soft:#3A2A10;
+  --in:#5BCB8F; --in-soft:#173726; --out:#F0806B; --out-soft:#3D1F19;
+  --warn:#E7C160; --warn-soft:#3A3014;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:20px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:26px;line-height:1.15}
+h2{font-size:19px}
+.eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 14px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--ink-3)}
+.btn.in{background:var(--in);border-color:var(--in);color:var(--surface)}
+.btn.out{background:var(--out);border-color:var(--out);color:var(--surface)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2);padding-inline:8px}
+.btn.danger{color:var(--out);border-color:var(--out)}
+.btn.small{padding:6px 10px;font-size:13px}
+
+.banner{border:1px dashed var(--accent);background:var(--accent-soft);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:14px}
+.banner.err{border-color:var(--out);background:var(--out-soft)}
+
+/* summary */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.stat{padding:16px 18px;display:flex;flex-direction:column;gap:4px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0}
+.stat .v{font-size:24px;font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:-.02em}
+.stat .sub{font-size:12.5px;color:var(--ink-3)}
+.stat.in .v{color:var(--in)} .stat.out .v{color:var(--out)} .stat.due .v{color:var(--warn)}
+@media (max-width:760px){.summary{grid-template-columns:1fr 1fr}.stat:nth-child(3){border-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}.stat .v{font-size:20px}}
+
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tab{border:0;background:none;padding:10px 14px;font-weight:600;color:var(--ink-3);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toolbar input,.toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;font-size:14px;min-width:0}
+.toolbar input{flex:1 1 200px}
+
+/* client cards */
+.clients{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.ccard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;text-align:left;width:100%}
+.ccard:hover{border-color:var(--ink-3)}
+.ccard .head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.ccard .name{font-family:var(--display);font-size:17px;font-weight:700;line-height:1.2}
+.ccard .meta{font-size:13px;color:var(--ink-3)}
+.pill{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:99px;white-space:nowrap;letter-spacing:.02em}
+.pill.paid{background:var(--in-soft);color:var(--in)}
+.pill.due{background:var(--warn-soft);color:var(--warn)}
+.pill.none{background:var(--out-soft);color:var(--out)}
+.pill.sample{background:var(--accent-soft);color:var(--accent)}
+.bar{height:8px;border-radius:99px;background:var(--sunk);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .adv{background:var(--accent)} .bar .rest{background:var(--in)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
+.kv div{display:flex;flex-direction:column}
+.kv .k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.kv .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;font-weight:500}
+.kv .v.bal{color:var(--warn);font-weight:600}
+.kv .v.good{color:var(--in)}
+.foot{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:10px;gap:8px;flex-wrap:wrap}
+
+/* ledger table */
+.tablebox{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--sunk)}
+td.amt,th.amt{text-align:right;white-space:nowrap}
+td.amt.in{color:var(--in)} td.amt.out{color:var(--out)}
+.tag{display:inline-block;font-size:12px;padding:1px 7px;border-radius:5px;background:var(--sunk);color:var(--ink-2);white-space:nowrap}
+.tag.adv{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.muted{color:var(--ink-3);font-size:13px}
+.empty{padding:28px;text-align:center;color:var(--ink-3)}
+
+/* category breakdown */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.split{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.catrow{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center;font-size:14px}
+.catrow .track{height:10px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.catrow .track i{display:block;height:100%;background:var(--out);border-radius:99px}
+
+/* client detail */
+.detail-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-end}
+.detail-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.detail-stats .stat .v{font-size:19px}
+@media (max-width:760px){.detail-stats{grid-template-columns:1fr 1fr}.detail-stats .stat{border-top:1px solid var(--line)}.detail-stats .stat:nth-child(odd){border-left:0}.detail-stats .stat:nth-child(-n+2){border-top:0}}
+
+/* dialog */
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:0;width:min(480px,calc(100vw - 32px));box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(10,16,14,.45)}
+dialog form{display:flex;flex-direction:column;gap:14px;padding:20px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--ground);border-radius:8px;padding:9px 11px;font-size:15px;width:100%}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check{display:flex;gap:8px;align-items:center;font-size:14px}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.dlg-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:4px}
+.dlg-actions .right{display:flex;gap:8px;margin-left:auto}
+.formerr{color:var(--out);font-size:13px;min-height:1em}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:500;z-index:10}
+@media (prefers-reduced-motion:no-preference){.ccard,.btn{transition:border-color .15s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Sri Saran Solar Solutions</div>
+      <h1>Site Cash Book</h1>
+    </div>
+    <div class="actions">
+      <button class="btn in" id="btnPay" type="button">+ Payment received</button>
+      <button class="btn out" id="btnExp" type="button">− Expense paid</button>
+      <button class="btn" id="btnClient" type="button">+ New client</button>
+      <button class="btn" id="btnCsv" type="button">⬇ Excel/CSV</button>
+      <button class="btn" id="btnBackup" type="button">⬇ Backup</button>
+      <button class="btn" id="btnRestore" type="button">⬆ Restore</button>
+      <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <section class="summary" aria-label="Totals">
+    <div class="stat in"><span class="eyebrow">Total received</span><span class="v" id="sIn">₹0</span><span class="sub" id="sInSub">from clients</span></div>
+    <div class="stat out"><span class="eyebrow">Total expenses</span><span class="v" id="sOut">₹0</span><span class="sub" id="sOutSub">materials &amp; labour</span></div>
+    <div class="stat"><span class="eyebrow">Cash in hand</span><span class="v" id="sNet">₹0</span><span class="sub">received − expenses</span></div>
+    <div class="stat due"><span class="eyebrow">Still to collect</span><span class="v" id="sDue">₹0</span><span class="sub" id="sDueSub">balance from clients</span></div>
+  </section>
+
+  <div id="main"></div>
+</div>
+
+<dialog id="dlg"><form id="dlgForm" method="dialog" novalidate></form></dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const CATS=["Solar panels","Inverter","Structure","Wiring & BOS","Labour","Transport","Other"];
+const MODES=["Cash","UPI","Bank transfer","Cheque"];
+const inr=new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0});
+const money=n=>inr.format(Math.round(n||0));
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const fmtDate=d=>{if(!d)return"";const [y,m,day]=d.split("-");return new Date(+y,+m-1,+day).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})};
+const $=id=>document.getElementById(id);
+
+let db=null, clients=[], txns=[], loaded={c:false,t:false};
+const ui={tab:"clients",client:null,q:"",kind:"all",cf:""};
+try{const t=localStorage.getItem("scb-tab");if(t)ui.tab=t}catch(e){}
+
+function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2600)}
+
+function stats(){
+  const per={};
+  for(const c of clients)per[c.id]={received:0,advance:0,spent:0,count:0};
+  let tin=0,tout=0,general=0;
+  for(const t of txns){
+    const a=+t.amount||0;
+    if(t.kind==="in"){tin+=a;if(per[t.clientId]){per[t.clientId].received+=a;if(t.isAdvance)per[t.clientId].advance+=a;per[t.clientId].count++}}
+    else{tout+=a;if(per[t.clientId]){per[t.clientId].spent+=a;per[t.clientId].count++}else general+=a}
+  }
+  let due=0,dueN=0;
+  for(const c of clients){const p=per[c.id];p.balance=(+c.contract||0)-p.received;if(p.balance>0){due+=p.balance;dueN++}}
+  return {per,tin,tout,general,due,dueN};
+}
+
+function status(c,p){
+  if(p.received<=0)return ["none","No payment yet"];
+  if(p.balance<=0)return ["paid","Fully paid"];
+  if(p.received===p.advance)return ["due","Advance only"];
+  return ["due","Balance pending"];
+}
+const clientName=id=>{const c=clients.find(c=>c.id===id);return c?c.name:"General"};
+
+function render(){
+  const S=stats();
+  $("sIn").textContent=money(S.tin);
+  $("sOut").textContent=money(S.tout);
+  $("sNet").textContent=money(S.tin-S.tout);
+  $("sNet").style.color=S.tin-S.tout<0?"var(--out)":"var(--ink)";
+  $("sDue").textContent=money(S.due);
+  $("sInSub").textContent=`${txns.filter(t=>t.kind==="in").length} payments · ${clients.length} clients`;
+  $("sOutSub").textContent=`${txns.filter(t=>t.kind==="out").length} expense entries`;
+  $("sDueSub").textContent=S.dueN?`${S.dueN} client${S.dueN>1?"s":""} with balance`:"nothing pending";
+
+  const hasSample=clients.some(c=>c.sample)||txns.some(t=>t.sample);
+  $("banner").innerHTML=!db&&loaded.failed
+    ? `<div class="banner err">Saving is not available in this view, so entries can't be loaded or saved. Open this page from claude.ai while signed in.</div>`
+    : hasSample ? `<div class="banner"><span>These are <b>example entries</b> so you can see how the book works. Remove them before you add your real clients.</span><button class="btn small" id="clearSample" type="button">Remove examples</button></div>` : "";
+  if($("clearSample"))$("clearSample").onclick=clearSample;
+
+  if(ui.client&&clients.find(c=>c.id===ui.client))return renderDetail(S);
+  ui.client=null;
+  const m=$("main");
+  m.innerHTML=`<div style="display:flex;flex-direction:column;gap:16px">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="clients" aria-selected="${ui.tab==="clients"}">Clients</button>
+      <button class="tab" role="tab" data-tab="ledger" aria-selected="${ui.tab==="ledger"}">All entries</button>
+    </div><div id="tabBody"></div></div>`;
+  m.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{ui.tab=b.dataset.tab;try{localStorage.setItem("scb-tab",ui.tab)}catch(e){}render()});
+  ui.tab==="clients"?renderClients(S):renderLedger(S);
+}
+
+function renderClients(S){
+  const body=$("tabBody");
+  if(!loaded.c||!loaded.t){body.innerHTML=`<div class="empty">Loading your book…</div>`;return}
+  if(!clients.length){body.innerHTML=`<div class="panel empty">No clients yet. Add your first client with their order value, then record the advance you received.<div style="margin-top:12px"><button class="btn primary" type="button" id="firstClient">+ New client</button></div></div>`;$("firstClient").onclick=()=>openClient();return}
+  const q=ui.q.toLowerCase();
+  const list=clients.filter(c=>!q||(c.name+" "+(c.site||"")+" "+(c.phone||"")).toLowerCase().includes(q))
+    .sort((a,b)=>S.per[b.id].balance-S.per[a.id].balance);
+  body.innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">
+    <div class="toolbar"><input id="q" type="search" placeholder="Search client, site or phone" value="${esc(ui.q)}"></div>
+    <div class="clients">${list.map(c=>{
+      const p=S.per[c.id],ct=+c.contract||0,[cls,lbl]=status(c,p);
+      const advPct=ct?Math.min(100,p.advance/ct*100):0, restPct=ct?Math.min(100-advPct,(p.received-p.advance)/ct*100):0;
+      const profit=p.received-p.spent;
+      return `<button class="ccard" type="button" data-id="${c.id}">
+        <div class="head"><div><div class="name">${esc(c.name)}</div><div class="meta">${esc([c.systemKw?c.systemKw+" kW":"",c.site].filter(Boolean).join(" · "))||"&nbsp;"}</div></div>
+        <div style="display:flex;gap:4px;flex-direction:column;align-items:flex-end">${c.sample?'<span class="pill sample">Example</span>':""}<span class="pill ${cls}">${lbl}</span></div></div>
+        <div class="bar" title="Advance and later payments against order value"><i class="adv" style="width:${advPct}%"></i><i class="rest" style="width:${restPct}%"></i></div>
+        <div class="kv">
+          <div><span class="k">Order value</span><span class="v">${money(ct)}</span></div>
+          <div><span class="k">Advance</span><span class="v">${money(p.advance)}</span></div>
+          <div><span class="k">Total received</span><span class="v good">${money(p.received)}</span></div>
+          <div><span class="k">Balance to get</span><span class="v bal">${money(Math.max(0,p.balance))}</span></div>
+        </div>
+        <div class="foot"><span>Spent on site <b class="num">${money(p.spent)}</b></span><span>Cash margin <b class="num" style="color:${profit<0?"var(--out)":"var(--in)"}">${money(profit)}</b></span></div>
+      </button>`}).join("")||`<div class="empty">No client matches “${esc(ui.q)}”.</div>`}</div></div>`;
+  const qi=$("q");qi.oninput=()=>{ui.q=qi.value;const pos=qi.selectionStart;renderClients(stats());const n=$("q");n.focus();n.setSelectionRange(pos,pos)};
+  body.querySelectorAll(".ccard").forEach(b=>b.onclick=()=>{ui.client=b.dataset.id;render();scrollTo(0,0)});
+}
+
+function ledgerRows(list,showClient=true){
+  if(!list.length)return `<div class="empty">No entries here yet.</div>`;
+  return `<div class="tablebox"><table><thead><tr><th>Date</th>${showClient?"<th>Client</th>":""}<th>Details</th><th>Mode</th><th class="amt">Received</th><th class="amt">Paid out</th></tr></thead><tbody>
+  ${list.map(t=>`<tr data-id="${t.id}">
+    <td class="num" style="white-space:nowrap">${fmtDate(t.date)}</td>
+    ${showClient?`<td>${esc(clientName(t.clientId))}</td>`:""}
+    <td>${t.kind==="in"?(t.isAdvance?'<span class="tag adv">Advance</span> ':'<span class="tag">Payment</span> '):`<span class="tag">${esc(t.category||"Other")}</span> `}${esc(t.party||"")}${t.note?`<div class="muted">${esc(t.note)}</div>`:""}${t.sample?' <span class="pill sample">Example</span>':""}</td>
+    <td class="muted">${esc(t.mode||"")}</td>
+    <td class="amt num in">${t.kind==="in"?money(t.amount):""}</td>
+    <td class="amt num out">${t.kind==="out"?money(t.amount):""}</td></tr>`).join("")}
+  </tbody></table></div>`;
+}
+const byDate=(a,b)=>(b.date||"").localeCompare(a.date||"")||(b.createdAt||0)-(a.createdAt||0);
+
+function catBreakdown(list){
+  const sums={};for(const t of list)if(t.kind==="out")sums[t.category||"Other"]=(sums[t.category||"Other"]||0)+(+t.amount||0);
+  const rows=Object.entries(sums).sort((a,b)=>b[1]-a[1]);const max=rows[0]?.[1]||1;
+  if(!rows.length)return `<div class="muted">No expenses yet.</div>`;
+  return rows.map(([k,v])=>`<div class="catrow"><span>${esc(k)}</span><span class="track"><i style="width:${v/max*100}%"></i></span><span class="num">${money(v)}</span></div>`).join("");
+}
+
+function renderLedger(S){
+  const body=$("tabBody");
+  const q=ui.q.toLowerCase();
+  const list=txns.filter(t=>(ui.kind==="all"||t.kind===ui.kind)&&(!ui.cf||t.clientId===ui.cf||(ui.cf==="_general"&&!clients.find(c=>c.id===t.clientId)))
+    &&(!q||[t.party,t.note,t.category,clientName(t.clientId)].join(" ").toLowerCase().includes(q))).sort(byDate);
+  const mat=txns.filter(t=>t.kind==="out"&&t.category!=="Labour"&&t.category!=="Transport"&&t.category!=="Other").reduce((s,t)=>s+(+t.amount||0),0);
+  const lab=txns.filter(t=>t.kind==="out"&&t.category==="Labour").reduce((s,t)=>s+(+t.amount||0),0);
+  body.innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">
+    <div class="split">
+      <div class="panel"><h2>Where the money went</h2>${catBreakdown(txns)}</div>
+      <div class="panel"><h2>Expense split</h2>
+        <div class="kv"><div><span class="k">Materials</span><span class="v">${money(mat)}</span></div><div><span class="k">Labour</span><span class="v">${money(lab)}</span></div>
+        <div><span class="k">General (no client)</span><span class="v">${money(S.general)}</span></div><div><span class="k">Advances received</span><span class="v good">${money(txns.filter(t=>t.kind==="in"&&t.isAdvance).reduce((s,t)=>s+(+t.amount||0),0))}</span></div></div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Search vendor, worker, note" value="${esc(ui.q)}">
+      <select id="kindF" aria-label="Entry type"><option value="all">All entries</option><option value="in">Payments received</option><option value="out">Expenses paid</option></select>
+      <select id="clientF" aria-label="Client"><option value="">All clients</option>${clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}<option value="_general">General (no client)</option></select>
+    </div>
+    ${ledgerRows(list)}
+  </div>`;
+  $("kindF").value=ui.kind;$("clientF").value=ui.cf;
+  $("kindF").onchange=e=>{ui.kind=e.target.value;renderLedger(stats())};
+  $("clientF").onchange=e=>{ui.cf=e.target.value;renderLedger(stats())};
+  const qi=$("q");qi.oninput=()=>{ui.q=qi.value;const pos=qi.selectionStart;renderLedger(stats());const n=$("q");n.focus();n.setSelectionRange(pos,pos)};
+  body.querySelectorAll("tbody tr").forEach(r=>r.onclick=()=>openTxn(txns.find(t=>t.id===r.dataset.id)));
+}
+
+function renderDetail(S){
+  const c=clients.find(c=>c.id===ui.client),p=S.per[c.id],[cls,lbl]=status(c,p);
+  const list=txns.filter(t=>t.clientId===c.id).sort(byDate);
+  $("main").innerHTML=`<div style="display:flex;flex-direction:column;gap:16px">
+    <div><button class="btn ghost" id="back" type="button">← All clients</button></div>
+    <div class="detail-head">
+      <div><div class="eyebrow">${esc([c.systemKw?c.systemKw+" kW system":"",c.site,c.phone].filter(Boolean).join(" · "))||"Client"}</div>
+        <h1 style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${esc(c.name)} <span class="pill ${cls}">${lbl}</span></h1></div>
+      <div class="actions">
+        <button class="btn in small" id="dPay" type="button">+ Payment</button>
+        <button class="btn out small" id="dExp" type="button">− Expense</button>
+        <button class="btn small" id="dEdit" type="button">Edit client</button>
+      </div>
+    </div>
+    <section class="detail-stats">
+      <div class="stat"><span class="eyebrow">Order value</span><span class="v">${money(c.contract)}</span></div>
+      <div class="stat"><span class="eyebrow">Advance</span><span class="v" style="color:var(--accent)">${money(p.advance)}</span></div>
+      <div class="stat in"><span class="eyebrow">Total received</span><span class="v">${money(p.received)}</span></div>
+      <div class="stat due"><span class="eyebrow">Balance to get</span><span class="v">${money(Math.max(0,p.balance))}</span>${p.balance<0?`<span class="sub">Overpaid by ${money(-p.balance)}</span>`:""}</div>
+      <div class="stat out"><span class="eyebrow">Spent on site</span><span class="v">${money(p.spent)}</span><span class="sub">Margin so far ${money(p.received-p.spent)}</span></div>
+    </section>
+    <div class="split">
+      <div class="panel"><h2>Spending on this site</h2>${catBreakdown(list)}</div>
+      <div class="panel"><h2>Expected on completion</h2>
+        <div class="kv"><div><span class="k">Order value</span><span class="v">${money(c.contract)}</span></div><div><span class="k">Spent so far</span><span class="v">${money(p.spent)}</span></div>
+        <div><span class="k">Profit if spending stops</span><span class="v ${(+c.contract||0)-p.spent>=0?"good":""}">${money((+c.contract||0)-p.spent)}</span></div><div><span class="k">Entries</span><span class="v">${list.length}</span></div></div>
+      </div>
+    </div>
+    <h2>Entries for ${esc(c.name)}</h2>
+    ${ledgerRows(list,false)}
+  </div>`;
+  $("back").onclick=()=>{ui.client=null;render()};
+  $("dPay").onclick=()=>openTxn(null,"in",c.id);
+  $("dExp").onclick=()=>openTxn(null,"out",c.id);
+  $("dEdit").onclick=()=>openClient(c);
+  $("main").querySelectorAll("tbody tr").forEach(r=>r.onclick=()=>openTxn(txns.find(t=>t.id===r.dataset.id)));
+}
+
+
+/* ---------- local storage backend (replaces Claude database) ---------- */
+const KEY="sss-cashbook-v1";
+const store=(()=>{
+  let data={clients:{},txns:{}};
+  try{const r=localStorage.getItem(KEY);if(r)data=JSON.parse(r);data.clients=data.clients||{};data.txns=data.txns||{}}catch(e){}
+  const subs={clients:[],txns:[]};
+  const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){throw new Error("storage")}};
+  const snap=n=>({docs:Object.entries(data[n]).map(([id,v])=>({id,data:()=>v}))});
+  const emit=n=>subs[n].forEach(cb=>cb(snap(n)));
+  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  const mk=(n,id)=>({
+    async set(body){const k=id||uid();data[n][k]=body;persist();emit(n)},
+    async delete(){delete data[n][id];persist();emit(n)}
+  });
+  return {
+    collection:n=>({doc:id=>mk(n,id),onSnapshot(cb){subs[n].push(cb);setTimeout(()=>cb(snap(n)),0)}}),
+    doc:path=>{const [n,id]=path.split("/");return mk(n,id)},
+    exportJson:()=>JSON.stringify({app:"site-cash-book",version:1,exported:new Date().toISOString(),...data},null,2),
+    importJson(txt){const j=JSON.parse(txt);if(!j.clients||!j.txns)throw new Error("bad");data={clients:j.clients,txns:j.txns};persist();emit("clients");emit("txns")}
+  };
+})();
+function download(name,text,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function exportBackup(){download("site-cash-book-backup-"+today()+".json",store.exportJson(),"application/json");toast("Backup downloaded")}
+function exportCsv(){
+  const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+  const rows=[["Date","Type","Client","Category","Paid to","Mode","Advance","Received","Paid out","Note"]];
+  [...txns].sort((a,b)=>(a.date||"").localeCompare(b.date||"")).forEach(t=>rows.push([t.date,t.kind==="in"?"Payment received":"Expense paid",clientName(t.clientId),t.category||"",t.party||"",t.mode||"",t.isAdvance?"Yes":"",t.kind==="in"?t.amount:"",t.kind==="out"?t.amount:"",t.note||""]));
+  download("site-cash-book-"+today()+".csv","\ufeff"+rows.map(r=>r.map(q).join(",")).join("\n"),"text/csv");toast("CSV downloaded");
+}
+$("btnBackup").onclick=exportBackup;
+$("btnCsv").onclick=exportCsv;
+$("btnRestore").onclick=()=>$("restoreFile").click();
+$("restoreFile").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  if(!confirm("Restore this backup? It will replace everything currently in the book on this device."))return;
+  try{store.importJson(await f.text());toast("Backup restored")}catch(err){toast("That file isn't a valid backup")}};
+
+/* ---------- forms ---------- */
+const dlg=$("dlg"),form=$("dlgForm");
+function needDb(){if(!db){toast("Saving isn't available in this view.");return false}return true}
+function field(id,label,input){return `<div class="field"><label for="${id}">${label}</label>${input}</div>`}
+function deleteBtn(){return `<button type="button" class="btn danger small" id="fDel">Delete</button>`}
+function armDelete(onConfirm,warn){
+  const b=$("fDel");if(!b)return;
+  b.onclick=()=>{if(b.dataset.armed){onConfirm();return}b.dataset.armed="1";b.textContent=warn||"Tap again to delete";}
+}
+function showForm(html){form.innerHTML=html;dlg.showModal();$("fCancel").onclick=()=>dlg.close();const f=form.querySelector("input:not([type=checkbox]),select");f&&f.focus()}
+async function save(fn,msg){
+  const btn=$("fSave");btn.disabled=true;
+  try{await fn();dlg.close();toast(msg)}
+  catch(e){$("fErr").textContent=e?.code==="invalid_argument"?"You don't have permission to change this book.":"Couldn't save. Phone storage may be full or blocked (private mode).";btn.disabled=false}
+}
+
+function openClient(c){
+  if(!needDb())return;
+  showForm(`<h2>${c?"Edit client":"New client"}</h2>
+    ${field("fName","Client name",`<input id="fName" required value="${esc(c?.name)}" placeholder="e.g. Murugan Textiles">`)}
+    <div class="row2">${field("fPhone","Phone",`<input id="fPhone" inputmode="tel" value="${esc(c?.phone)}">`)}${field("fKw","System size (kW)",`<input id="fKw" inputmode="decimal" value="${esc(c?.systemKw)}" placeholder="5">`)}</div>
+    ${field("fSite","Site / location",`<input id="fSite" value="${esc(c?.site)}" placeholder="e.g. Tiruppur">`)}
+    ${field("fContract","Order value (₹)",`<input id="fContract" inputmode="numeric" value="${c?esc(c.contract):""}" placeholder="Total amount the client will pay">`)}
+    <div class="formerr" id="fErr"></div>
+    <div class="dlg-actions">${c?deleteBtn():""}<div class="right"><button type="button" class="btn" id="fCancel">Cancel</button><button type="submit" class="btn primary" id="fSave">${c?"Save changes":"Add client"}</button></div></div>`);
+  form.onsubmit=e=>{e.preventDefault();
+    const name=$("fName").value.trim(),contract=parseFloat($("fContract").value.replace(/[,₹\s]/g,""));
+    if(!name){$("fErr").textContent="Enter the client's name.";return}
+    if(!(contract>=0)){$("fErr").textContent="Enter the order value as a number, e.g. 350000.";return}
+    const body={name,phone:$("fPhone").value.trim(),site:$("fSite").value.trim(),systemKw:$("fKw").value.trim(),contract,createdAt:c?.createdAt||Date.now()};
+    if(c?.sample)body.sample=true;
+    save(()=>db.collection("clients").doc(c?.id).set(body),c?"Client updated":"Client added");
+  };
+  if(c){const n=txns.filter(t=>t.clientId===c.id).length;
+    armDelete(()=>save(async()=>{for(const t of txns.filter(t=>t.clientId===c.id))await db.doc("txns/"+t.id).delete();await db.doc("clients/"+c.id).delete();ui.client=null},"Client deleted"),
+      n?`Delete client and ${n} entr${n>1?"ies":"y"}?`:"Tap again to delete");}
+}
+
+function openTxn(t,kind,clientId){
+  if(!needDb())return;
+  kind=t?.kind||kind;const isIn=kind==="in";
+  if(isIn&&!clients.length){toast("Add a client first, then record their payment.");openClient();return}
+  const cid=t?.clientId??clientId??"";
+  const opts=(isIn?"":`<option value="">General (not for one client)</option>`)+clients.map(c=>`<option value="${c.id}" ${c.id===cid?"selected":""}>${esc(c.name)}</option>`).join("");
+  const firstPay=isIn&&!t&&cid&&!txns.some(x=>x.kind==="in"&&x.clientId===cid);
+  showForm(`<h2 style="color:${isIn?"var(--in)":"var(--out)"}">${t?"Edit ":""}${isIn?"Payment received":"Expense paid"}</h2>
+    ${field("fClient",isIn?"From client":"For client / site",`<select id="fClient">${opts}</select>`)}
+    <div class="row2">${field("fAmt","Amount (₹)",`<input id="fAmt" inputmode="numeric" value="${t?esc(t.amount):""}">`)}${field("fDate","Date",`<input id="fDate" type="date" value="${t?.date||today()}">`)}</div>
+    ${isIn?"":`<div class="row2">${field("fCat","Category",`<select id="fCat">${CATS.map(k=>`<option ${k===(t?.category||"Solar panels")?"selected":""}>${k}</option>`).join("")}</select>`)}${field("fParty","Paid to",`<input id="fParty" value="${esc(t?.party)}" placeholder="Vendor or worker">`)}</div>`}
+    ${field("fMode","Paid by",`<select id="fMode">${MODES.map(k=>`<option ${k===(t?.mode||"UPI")?"selected":""}>${k}</option>`).join("")}</select>`)}
+    ${isIn?`<label class="check"><input type="checkbox" id="fAdv" ${t?.isAdvance||firstPay?"checked":""}> This is an advance payment</label>`:""}
+    ${field("fNote","Note",`<input id="fNote" value="${esc(t?.note)}" placeholder="${isIn?"e.g. 2nd instalment after panel fixing":"e.g. 10 × 545W panels"}">`)}
+    <div class="formerr" id="fErr"></div>
+    <div class="dlg-actions">${t?deleteBtn():""}<div class="right"><button type="button" class="btn" id="fCancel">Cancel</button><button type="submit" class="btn ${isIn?"in":"out"}" id="fSave">${t?"Save changes":"Save entry"}</button></div></div>`);
+  if(isIn&&!cid&&$("fClient"))$("fClient").selectedIndex=0;
+  form.onsubmit=e=>{e.preventDefault();
+    const amount=parseFloat($("fAmt").value.replace(/[,₹\s]/g,""));
+    if(!(amount>0)){$("fErr").textContent="Enter an amount above zero, e.g. 25000.";return}
+    if(!$("fDate").value){$("fErr").textContent="Pick a date.";return}
+    const body={kind,clientId:$("fClient").value,amount,date:$("fDate").value,mode:$("fMode").value,note:$("fNote").value.trim(),createdAt:t?.createdAt||Date.now()};
+    if(isIn)body.isAdvance=$("fAdv").checked;else{body.category=$("fCat").value;body.party=$("fParty").value.trim()}
+    if(t?.sample)body.sample=true;
+    save(()=>db.collection("txns").doc(t?.id).set(body),t?"Entry updated":(isIn?"Payment saved":"Expense saved"));
+  };
+  if(t)armDelete(()=>save(()=>db.doc("txns/"+t.id).delete(),"Entry deleted"));
+}
+
+async function clearSample(){
+  if(!needDb())return;const b=$("clearSample");
+  if(!b.dataset.armed){b.dataset.armed="1";b.textContent="Tap again to remove all examples";return}
+  b.disabled=true;
+  try{for(const t of txns.filter(t=>t.sample))await db.doc("txns/"+t.id).delete();for(const c of clients.filter(c=>c.sample))await db.doc("clients/"+c.id).delete();toast("Examples removed")}
+  catch(e){toast("Couldn't remove examples. Try again.");b.disabled=false}
+}
+
+$("btnPay").onclick=()=>openTxn(null,"in",ui.client);
+$("btnExp").onclick=()=>openTxn(null,"out",ui.client);
+$("btnClient").onclick=()=>openClient();
+
+render();
+(async()=>{
+  db=store;
+  if(!db){loaded.failed=true;loaded.c=loaded.t=true;render();return}
+  const onErr=()=>{toast("Couldn't read saved data. Reload the page.")};
+  db.collection("clients").onSnapshot(s=>{clients=s.docs.map(d=>({id:d.id,...d.data()}));loaded.c=true;render()},onErr);
+  db.collection("txns").onSnapshot(s=>{txns=s.docs.map(d=>({id:d.id,...d.data()}));loaded.t=true;render()},onErr);
+})();
+</script>
+
+</body></html>
